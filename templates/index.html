@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chatbot</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    #chat-box { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; }
+    .user { color: blue; font-weight: bold; }
+    .bot { color: green; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h2>AI Chatbot (Ollama + Flask)</h2>
+  <div id="chat-box"></div>
+  <input type="text" id="user-input" placeholder="Type your message..." />
+  <button onclick="sendMessage()">Send</button>
+
+  <script>
+    async function sendMessage() {
+      const input = document.getElementById("user-input");
+      const message = input.value;
+      input.value = "";
+
+      const chatBox = document.getElementById("chat-box");
+      chatBox.innerHTML += `<p class="user">You: ${message}</p>`;
+
+      const response = await fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message })
+      });
+      const data = await response.json();
+      chatBox.innerHTML += `<p class="bot">Bot: ${data.reply}</p>`;
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+  </script>
+</body>
+</html>
