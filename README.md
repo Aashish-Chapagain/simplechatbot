@@ -1,6 +1,6 @@
 Install Python and Flask.
 
-Install Ollama and download the desired model.
+Install Ollama and download the desired model (mistral is used in this project).
 
 Install necessary Python modules (requests, python-dotenv).
 
