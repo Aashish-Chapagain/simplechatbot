@@ -1,32 +1,55 @@
 from flask import Flask, request, jsonify, render_template
-import requests
-
+from langchain_ollama.llms import OllamaLLM
+from langchain_core.prompts import ChatPromptTemplate
+from vector import retriever  
 
 app = Flask(__name__)
 
-OLLAMA_API_URL = "http://localhost:11434/api/generate"
-OLLAMA_MODEL = "mistral" 
 
-@app.route('/')
+model = OllamaLLM(model="mistral")
+
+template = '''
+this is the information you have to read:
+
+{information}
+
+Based on the above information, answer the following question clearly and accurately:
+{question}
+'''
+prompt = ChatPromptTemplate.from_template(template)
+chain = prompt | model
+
+
+
+@app.route("/ask", methods=["POST"])
+def ask_question():
+    data = request.json
+    question = data.get("question", "").strip()
+
+    if not question:
+        return jsonify({"error": "Missing question"}), 400
+
+    try:
+        # Retrieve documents
+        documents = retriever.invoke(question)
+        information = "\n".join([doc.page_content for doc in documents])
+
+        # Invoke model chain
+        result = chain.invoke({
+            "information": information,
+            "question": question
+        })
+
+        return jsonify({"answer": result})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/", methods=["GET"])
 def index():
     return render_template("index.html")
 
-@app.route('/chat', methods=['POST'])
-def chat():
-    user_input = request.json['message']
-    
-    payload = {
-        "model": OLLAMA_MODEL,
-        "prompt": user_input,
-        "stream": False
-    }
 
-    try:
-        response = requests.post(OLLAMA_API_URL, json=payload)
-        data = response.json()
-        return jsonify({"reply": data['response']})
-    except Exception as e:
-        return jsonify({"reply": f"Error: {str(e)}"})
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(debug=True)
+

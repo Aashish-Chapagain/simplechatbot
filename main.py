@@ -16,6 +16,7 @@ Based on the above information, answer the following question clearly and accura
 {question}
 '''
 
+
 prompt = ChatPromptTemplate.from_template(template)
 
 # Combine prompt and model into a chain
@@ -38,7 +39,7 @@ while True:
     print("Thinking....")
 
     result = chain.invoke({
-        "information": information,
+        "information":information,
         "question": question
     })
 
